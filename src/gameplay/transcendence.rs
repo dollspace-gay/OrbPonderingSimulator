@@ -1,11 +1,5 @@
-use super::acolytes::AcolyteState;
-use super::generators::GeneratorState;
-use super::moments::MomentState;
-use super::progression::ArcaneProgress;
-use super::shop::PurchaseTracker;
 use super::state::GameState;
 use super::wisdom::WisdomMeter;
-use crate::orb::types::{EquippedOrb, OrbType};
 use bevy::prelude::*;
 
 // ========== DATA ==========
@@ -446,13 +440,6 @@ pub fn close_transcendence_ui(
 pub fn handle_transcend_click(
     interactions: Query<&Interaction, (Changed<Interaction>, With<TranscendButton>)>,
     mut transcendence: ResMut<TranscendenceState>,
-    mut progress: ResMut<ArcaneProgress>,
-    mut wisdom: ResMut<WisdomMeter>,
-    mut generators: ResMut<GeneratorState>,
-    mut acolytes: ResMut<AcolyteState>,
-    mut tracker: ResMut<PurchaseTracker>,
-    mut moments: ResMut<MomentState>,
-    mut equipped: ResMut<EquippedOrb>,
     mut next_state: ResMut<NextState<GameState>>,
 ) {
     for interaction in &interactions {
@@ -465,27 +452,13 @@ pub fn handle_transcend_click(
             continue;
         }
 
-        // Grant insight
+        // Grant insight (permanent)
         transcendence.insight += gained;
         transcendence.total_transcendences += 1;
         transcendence.run_wisdom_accumulated = 0.0;
 
-        // Reset run state
-        let starting_afp = transcendence.starting_afp();
-        *progress = ArcaneProgress {
-            focus_points: starting_afp,
-            ..Default::default()
-        };
-        *wisdom = WisdomMeter::default();
-        *generators = GeneratorState::default();
-        *acolytes = AcolyteState::default();
-        *tracker = PurchaseTracker::default();
-        *moments = MomentState::default();
-        equipped.0 = OrbType::Crystal;
-        tracker.recalculate(OrbType::Crystal);
-
-        // Close the panel and return to playing
-        next_state.set(GameState::Playing);
+        // Go to school selection — the actual reset happens when a school is chosen
+        next_state.set(GameState::SchoolSelection);
     }
 }
 

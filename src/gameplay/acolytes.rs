@@ -1,5 +1,6 @@
 use super::moments::MomentState;
 use super::progression::ArcaneProgress;
+use super::schools::SchoolState;
 use super::shop::PurchaseTracker;
 use super::transcendence::TranscendenceState;
 use super::wisdom::WisdomMeter;
@@ -53,6 +54,7 @@ pub fn passive_wisdom(
     tracker: Res<PurchaseTracker>,
     moments: Res<MomentState>,
     transcendence: Res<TranscendenceState>,
+    school: Res<SchoolState>,
     mut wisdom: ResMut<WisdomMeter>,
     time: Res<Time>,
 ) {
@@ -63,6 +65,7 @@ pub fn passive_wisdom(
         * (1.0 + tracker.efficiency_bonus)
         * tracker.wisdom_speed_bonus
         * moments.wisdom_multiplier()
-        * transcendence.passive_multiplier();
+        * transcendence.passive_multiplier()
+        * school.passive_multiplier();
     wisdom.current += rate * time.delta_secs();
 }

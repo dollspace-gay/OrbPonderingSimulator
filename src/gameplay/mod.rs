@@ -5,6 +5,7 @@ pub mod generators;
 pub mod moments;
 pub mod pondering;
 pub mod progression;
+pub mod schools;
 pub mod shop;
 pub mod state;
 pub mod synergies;
@@ -22,6 +23,7 @@ impl Plugin for GameplayPlugin {
             .init_resource::<acolytes::AcolyteState>()
             .init_resource::<generators::GeneratorState>()
             .init_resource::<synergies::SynergyState>()
+            .init_resource::<schools::SchoolState>()
             .init_resource::<moments::MomentState>()
             .init_resource::<transcendence::TranscendenceState>()
             .add_message::<wisdom::TruthGenerated>()
@@ -54,8 +56,23 @@ impl Plugin for GameplayPlugin {
                 (
                     progression::award_points,
                     transcendence::accumulate_run_wisdom,
+                    schools::track_run_truths,
                 )
                     .run_if(in_state(state::GameState::Playing)),
+            )
+            // School selection
+            .add_systems(
+                OnEnter(state::GameState::SchoolSelection),
+                schools::open_school_selection,
+            )
+            .add_systems(
+                OnExit(state::GameState::SchoolSelection),
+                schools::close_school_selection,
+            )
+            .add_systems(
+                Update,
+                schools::handle_school_choice
+                    .run_if(in_state(state::GameState::SchoolSelection)),
             )
             // Transcendence
             .add_systems(Update, transcendence::toggle_transcendence)

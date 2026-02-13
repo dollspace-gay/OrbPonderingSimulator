@@ -1,3 +1,12 @@
+use super::acolytes::AcolyteState;
+use super::generators::GeneratorState;
+use super::moments::MomentState;
+use super::progression::ArcaneProgress;
+use super::shop::PurchaseTracker;
+use super::state::GameState;
+use super::transcendence::TranscendenceState;
+use super::wisdom::WisdomMeter;
+use crate::orb::types::{EquippedOrb, OrbType};
 use bevy::prelude::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
@@ -248,4 +257,59 @@ pub fn close_school_selection(
     for entity in &panels {
         commands.entity(entity).despawn();
     }
+}
+
+/// Handles clicking a school choice button — performs the actual game reset and starts the new run
+pub fn handle_school_choice(
+    interactions: Query<(&Interaction, &SchoolChoiceButton), Changed<Interaction>>,
+    mut school: ResMut<SchoolState>,
+    transcendence: Res<TranscendenceState>,
+    mut progress: ResMut<ArcaneProgress>,
+    mut wisdom: ResMut<WisdomMeter>,
+    mut generators: ResMut<GeneratorState>,
+    mut acolytes: ResMut<AcolyteState>,
+    mut tracker: ResMut<PurchaseTracker>,
+    mut moments: ResMut<MomentState>,
+    mut equipped: ResMut<EquippedOrb>,
+    mut next_state: ResMut<NextState<GameState>>,
+) {
+    for (interaction, button) in &interactions {
+        if *interaction != Interaction::Pressed {
+            continue;
+        }
+
+        // Apply chosen school
+        school.active = button.0;
+        school.run_truths = 0;
+
+        // Reset run state
+        let starting_afp = transcendence.starting_afp();
+        *progress = ArcaneProgress {
+            focus_points: starting_afp,
+            ..Default::default()
+        };
+        *wisdom = WisdomMeter::default();
+        *generators = GeneratorState::default();
+        *acolytes = AcolyteState::default();
+        *tracker = PurchaseTracker::default();
+        *moments = MomentState::default();
+        equipped.0 = OrbType::Crystal;
+        tracker.recalculate(OrbType::Crystal);
+
+        // Start the new run
+        next_state.set(GameState::Playing);
+    }
+}
+
+/// Tracks truths generated this run (for Nihilism scaling)
+pub fn track_run_truths(
+    mut school: ResMut<SchoolState>,
+    wisdom: Res<WisdomMeter>,
+    mut last_truths: Local<u32>,
+) {
+    if wisdom.truths_generated > *last_truths {
+        let new_truths = wisdom.truths_generated - *last_truths;
+        school.run_truths += new_truths;
+    }
+    *last_truths = wisdom.truths_generated;
 }

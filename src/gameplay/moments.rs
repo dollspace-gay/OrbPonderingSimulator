@@ -1,5 +1,6 @@
 use super::generators::GeneratorState;
 use super::progression::ArcaneProgress;
+use super::schools::SchoolState;
 use super::shop::PurchaseTracker;
 use super::transcendence::TranscendenceState;
 use super::wisdom::WisdomMeter;
@@ -118,7 +119,11 @@ pub fn update_moments(
     mut moments: ResMut<MomentState>,
     time: Res<Time>,
     transcendence: Res<TranscendenceState>,
+    school: Res<SchoolState>,
 ) {
+    let freq_mult =
+        transcendence.clarity_frequency_multiplier() * school.moment_frequency_multiplier();
+
     // Tick spawn timer
     if moments.pending.is_none() {
         moments.spawn_timer.tick(time.delta());
@@ -141,7 +146,7 @@ pub fn update_moments(
     }
     if expired {
         moments.pending = None;
-        moments.reset_spawn_timer(transcendence.clarity_frequency_multiplier());
+        moments.reset_spawn_timer(freq_mult);
     }
 
     // Tick active buff timer
@@ -285,7 +290,13 @@ pub fn handle_moment_click(
     generators: Res<GeneratorState>,
     tracker: Res<PurchaseTracker>,
     transcendence: Res<TranscendenceState>,
+    school: Res<SchoolState>,
 ) {
+    let freq_mult =
+        transcendence.clarity_frequency_multiplier() * school.moment_frequency_multiplier();
+    let dur_mult = school.moment_duration_multiplier();
+    let burst_mult = school.moment_burst_multiplier();
+
     for interaction in &interactions {
         if *interaction != Interaction::Pressed {
             continue;
@@ -302,13 +313,13 @@ pub fn handle_moment_click(
                 let rate = base_prod
                     * (1.0 + tracker.efficiency_bonus as f64)
                     * tracker.wisdom_speed_bonus as f64;
-                let burst = (rate * 10.0).max(5.0);
+                let burst = (rate * 10.0 * burst_mult).max(5.0);
                 wisdom.current += burst as f32;
             }
             MomentEffect::WisdomMultiplier => {
                 moments.active_buff = Some(ActiveBuff {
                     effect: MomentEffect::WisdomMultiplier,
-                    timer: Timer::from_seconds(30.0, TimerMode::Once),
+                    timer: Timer::from_seconds(30.0 * dur_mult, TimerMode::Once),
                 });
             }
             MomentEffect::AfpBonus => {
@@ -319,12 +330,12 @@ pub fn handle_moment_click(
             MomentEffect::ClickFrenzy => {
                 moments.active_buff = Some(ActiveBuff {
                     effect: MomentEffect::ClickFrenzy,
-                    timer: Timer::from_seconds(20.0, TimerMode::Once),
+                    timer: Timer::from_seconds(20.0 * dur_mult, TimerMode::Once),
                 });
             }
         }
 
-        moments.reset_spawn_timer(transcendence.clarity_frequency_multiplier());
+        moments.reset_spawn_timer(freq_mult);
     }
 }
 

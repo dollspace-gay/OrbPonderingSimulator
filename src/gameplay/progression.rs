@@ -1,3 +1,4 @@
+use super::schools::SchoolState;
 use super::shop::PurchaseTracker;
 use super::wisdom::TruthGenerated;
 use crate::orb::types::OrbType;
@@ -24,9 +25,10 @@ pub fn award_points(
     mut progress: ResMut<ArcaneProgress>,
     mut truth_messages: MessageReader<TruthGenerated>,
     tracker: Res<PurchaseTracker>,
+    school: Res<SchoolState>,
 ) {
     for _msg in truth_messages.read() {
-        progress.focus_points += 10 + tracker.afp_bonus as u64;
+        progress.focus_points += 10 + tracker.afp_bonus as u64 + school.afp_bonus_per_truth();
         progress.total_truths += 1;
     }
 }

@@ -1,4 +1,5 @@
 use super::moments::MomentState;
+use super::schools::SchoolState;
 use super::shop::PurchaseTracker;
 use super::synergies::SynergyState;
 use super::transcendence::TranscendenceState;
@@ -141,6 +142,7 @@ pub fn passive_generator_wisdom(
     tracker: Res<PurchaseTracker>,
     moments: Res<MomentState>,
     transcendence: Res<TranscendenceState>,
+    school: Res<SchoolState>,
     mut wisdom: ResMut<WisdomMeter>,
     time: Res<Time>,
 ) {
@@ -152,6 +154,7 @@ pub fn passive_generator_wisdom(
         * (1.0 + tracker.efficiency_bonus as f64)
         * tracker.wisdom_speed_bonus as f64
         * moments.wisdom_multiplier() as f64
-        * transcendence.passive_multiplier() as f64;
+        * transcendence.passive_multiplier() as f64
+        * school.passive_multiplier() as f64;
     wisdom.current += (rate * time.delta_secs() as f64) as f32;
 }
