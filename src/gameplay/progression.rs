@@ -1,3 +1,4 @@
+use super::challenges::ChallengeState;
 use super::schools::SchoolState;
 use super::shop::PurchaseTracker;
 use super::wisdom::TruthGenerated;
@@ -26,9 +27,11 @@ pub fn award_points(
     mut truth_messages: MessageReader<TruthGenerated>,
     tracker: Res<PurchaseTracker>,
     school: Res<SchoolState>,
+    challenges: Res<ChallengeState>,
 ) {
     for _msg in truth_messages.read() {
-        progress.focus_points += 10 + tracker.afp_bonus as u64 + school.afp_bonus_per_truth();
+        let base_afp = 10 + tracker.afp_bonus as u64 + school.afp_bonus_per_truth();
+        progress.focus_points += (base_afp as f32 * challenges.afp_multiplier()) as u64;
         progress.total_truths += 1;
     }
 }

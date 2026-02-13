@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 pub mod achievements;
 pub mod acolytes;
+pub mod challenges;
 pub mod generators;
 pub mod moments;
 pub mod persistence;
@@ -31,6 +32,7 @@ impl Plugin for GameplayPlugin {
             .init_resource::<transcendence::TranscendenceState>()
             .init_resource::<achievements::AchievementTracker>()
             .init_resource::<shadow_thoughts::ShadowState>()
+            .init_resource::<challenges::ChallengeState>()
             .init_resource::<persistence::AutoSaveTimer>()
             .init_resource::<persistence::OfflineReport>()
             .add_message::<wisdom::TruthGenerated>()
@@ -63,6 +65,9 @@ impl Plugin for GameplayPlugin {
                     shadow_thoughts::siphon_wisdom,
                     shadow_thoughts::handle_dispel,
                     shadow_thoughts::render_shadow_ui,
+                    challenges::update_challenges,
+                    challenges::track_solitude_progress,
+                    challenges::render_challenge_indicator,
                 )
                     .run_if(in_state(state::GameState::Playing)),
             )
@@ -134,6 +139,21 @@ impl Plugin for GameplayPlugin {
             .add_systems(
                 OnExit(state::GameState::AchievementsOpen),
                 achievements::close_achievements,
+            )
+            // Challenges
+            .add_systems(Update, challenges::toggle_challenges)
+            .add_systems(
+                OnEnter(state::GameState::ChallengesOpen),
+                challenges::open_challenges,
+            )
+            .add_systems(
+                OnExit(state::GameState::ChallengesOpen),
+                challenges::close_challenges,
+            )
+            .add_systems(
+                Update,
+                challenges::handle_challenge_begin
+                    .run_if(in_state(state::GameState::ChallengesOpen)),
             )
             // Pause
             .add_systems(Update, state::toggle_pause)

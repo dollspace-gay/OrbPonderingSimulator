@@ -1,5 +1,6 @@
 use super::achievements::AchievementTracker;
 use super::acolytes::AcolyteState;
+use super::challenges::ChallengeState;
 use super::moments::MomentState;
 use super::schools::SchoolState;
 use super::shop::PurchaseTracker;
@@ -36,6 +37,7 @@ pub fn handle_click_ponder(
     transcendence: Res<TranscendenceState>,
     school: Res<SchoolState>,
     achievements: Res<AchievementTracker>,
+    challenges: Res<ChallengeState>,
     interactions: Query<&Interaction>,
 ) {
     if !mouse.just_pressed(MouseButton::Left) {
@@ -54,6 +56,7 @@ pub fn handle_click_ponder(
     let enlightenment_mult = transcendence.click_multiplier();
     let school_click_mult = school.click_multiplier();
     let achievement_mult = achievements.wisdom_multiplier();
+    let challenge_click_mult = challenges.click_multiplier();
     let gain = 1.0
         * (1.0 + tracker.efficiency_bonus)
         * tracker.wisdom_speed_bonus
@@ -61,7 +64,8 @@ pub fn handle_click_ponder(
         * moment_click_mult
         * enlightenment_mult
         * school_click_mult
-        * achievement_mult;
+        * achievement_mult
+        * challenge_click_mult;
 
     wisdom.current += gain;
     ponder.ponder_intensity = 1.0;

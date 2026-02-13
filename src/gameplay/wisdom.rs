@@ -1,3 +1,4 @@
+use super::challenges::ChallengeState;
 use super::schools::SchoolState;
 use super::shop::PurchaseTracker;
 use bevy::prelude::*;
@@ -341,6 +342,7 @@ pub fn check_truth_generation(
     mut truth_messages: MessageWriter<TruthGenerated>,
     tracker: Res<PurchaseTracker>,
     school: Res<SchoolState>,
+    challenges: Res<ChallengeState>,
 ) {
     if wisdom.current >= wisdom.max_wisdom {
         wisdom.current = 0.0;
@@ -351,7 +353,10 @@ pub fn check_truth_generation(
             text: DEEP_TRUTHS[index].to_string(),
         });
 
-        let scaling = school.scaling_override().unwrap_or(tracker.scaling_factor);
+        let scaling = challenges
+            .active_scaling_override()
+            .or(school.scaling_override())
+            .unwrap_or(tracker.scaling_factor);
         wisdom.max_wisdom *= scaling;
     }
 }

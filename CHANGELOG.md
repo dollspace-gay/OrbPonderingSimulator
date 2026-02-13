@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- Add Meditation Challenges for permanent rewards (#36)
 - Add Shadow Thoughts wisdom multiplier mechanic (#35)
 - Add offline progression system (#34)
 - Add achievements and milestone system (#33)

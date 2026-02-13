@@ -10,6 +10,7 @@ pub enum GameState {
     TranscendenceOpen,
     SchoolSelection,
     AchievementsOpen,
+    ChallengesOpen,
 }
 
 #[derive(Component)]

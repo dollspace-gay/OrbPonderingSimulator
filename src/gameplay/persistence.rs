@@ -1,5 +1,6 @@
 use super::achievements::{AchievementId, AchievementTracker};
 use super::acolytes::AcolyteState;
+use super::challenges::{ChallengeId, ChallengeState};
 use super::generators::GeneratorState;
 use super::progression::ArcaneProgress;
 use super::schools::{SchoolOfThought, SchoolState};
@@ -66,6 +67,10 @@ pub struct SaveData {
     pub shadow_count: u32,
     #[serde(default)]
     pub shadow_stored_wisdom: f64,
+
+    // Challenges (permanent)
+    #[serde(default)]
+    pub completed_challenges: Vec<ChallengeId>,
 }
 
 impl SaveData {
@@ -80,6 +85,7 @@ impl SaveData {
         school: &SchoolState,
         achievements: &AchievementTracker,
         shadows: &ShadowState,
+        challenges: &ChallengeState,
     ) -> Self {
         Self {
             version: 1,
@@ -107,6 +113,7 @@ impl SaveData {
             achievement_run_truths: achievements.run_truths,
             shadow_count: shadows.count,
             shadow_stored_wisdom: shadows.stored_wisdom,
+            completed_challenges: challenges.completed.clone(),
         }
     }
 
@@ -123,6 +130,7 @@ impl SaveData {
         achievements: &mut AchievementTracker,
         synergies: &mut SynergyState,
         shadows: &mut ShadowState,
+        challenges: &mut ChallengeState,
     ) {
         wisdom.current = self.wisdom_current;
         wisdom.max_wisdom = self.wisdom_max;
@@ -157,6 +165,9 @@ impl SaveData {
 
         shadows.count = self.shadow_count;
         shadows.stored_wisdom = self.shadow_stored_wisdom;
+
+        challenges.completed = self.completed_challenges.clone();
+        challenges.active = None;
 
         // Recalculate synergies from restored generator state
         synergies.recalculate(generators);
@@ -333,6 +344,7 @@ pub fn load_game(
     mut achievements: ResMut<AchievementTracker>,
     mut synergies: ResMut<SynergyState>,
     mut shadows: ResMut<ShadowState>,
+    mut challenges: ResMut<ChallengeState>,
     mut offline_report: ResMut<OfflineReport>,
 ) {
     let Some(save) = load_from_disk() else {
@@ -355,6 +367,7 @@ pub fn load_game(
         &mut achievements,
         &mut synergies,
         &mut shadows,
+        &mut challenges,
     );
 
     // Apply offline gains
@@ -395,6 +408,7 @@ pub fn auto_save(
     school: Res<SchoolState>,
     achievements: Res<AchievementTracker>,
     shadows: Res<ShadowState>,
+    challenges: Res<ChallengeState>,
 ) {
     timer.0.tick(time.delta());
     if !timer.0.just_finished() {
@@ -412,6 +426,7 @@ pub fn auto_save(
         &school,
         &achievements,
         &shadows,
+        &challenges,
     );
     save_to_disk(&data);
 }
@@ -429,6 +444,7 @@ pub fn save_on_exit(
     school: Res<SchoolState>,
     achievements: Res<AchievementTracker>,
     shadows: Res<ShadowState>,
+    challenges: Res<ChallengeState>,
 ) {
     if exit_messages.read().next().is_none() {
         return;
@@ -445,6 +461,7 @@ pub fn save_on_exit(
         &school,
         &achievements,
         &shadows,
+        &challenges,
     );
     save_to_disk(&data);
 }
