@@ -5,11 +5,12 @@ use super::synergies::SynergyState;
 use super::transcendence::TranscendenceState;
 use crate::orb::types::{EquippedOrb, Orb, OrbType};
 use bevy::prelude::*;
+use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
 // ========== DATA TYPES ==========
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ShopItemId {
     ArcaneBiscuit,
     VoidTea,

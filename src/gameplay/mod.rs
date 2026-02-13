@@ -4,9 +4,11 @@ pub mod achievements;
 pub mod acolytes;
 pub mod generators;
 pub mod moments;
+pub mod persistence;
 pub mod pondering;
 pub mod progression;
 pub mod schools;
+pub mod shadow_thoughts;
 pub mod shop;
 pub mod state;
 pub mod synergies;
@@ -28,7 +30,22 @@ impl Plugin for GameplayPlugin {
             .init_resource::<moments::MomentState>()
             .init_resource::<transcendence::TranscendenceState>()
             .init_resource::<achievements::AchievementTracker>()
+            .init_resource::<shadow_thoughts::ShadowState>()
+            .init_resource::<persistence::AutoSaveTimer>()
+            .init_resource::<persistence::OfflineReport>()
             .add_message::<wisdom::TruthGenerated>()
+            // Save/Load
+            .add_systems(Startup, persistence::load_game)
+            .add_systems(PostStartup, persistence::show_welcome_back)
+            .add_systems(
+                Update,
+                (
+                    persistence::auto_save,
+                    persistence::save_on_exit,
+                    persistence::handle_welcome_dismiss,
+                    persistence::auto_dismiss_welcome,
+                ),
+            )
             .add_systems(
                 Update,
                 (
@@ -42,6 +59,10 @@ impl Plugin for GameplayPlugin {
                     moments::handle_moment_click,
                     moments::render_moment_popup,
                     moments::render_buff_indicator,
+                    shadow_thoughts::update_shadows,
+                    shadow_thoughts::siphon_wisdom,
+                    shadow_thoughts::handle_dispel,
+                    shadow_thoughts::render_shadow_ui,
                 )
                     .run_if(in_state(state::GameState::Playing)),
             )

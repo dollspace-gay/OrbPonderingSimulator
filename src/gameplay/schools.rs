@@ -3,14 +3,16 @@ use super::acolytes::AcolyteState;
 use super::generators::GeneratorState;
 use super::moments::MomentState;
 use super::progression::ArcaneProgress;
+use super::shadow_thoughts::ShadowState;
 use super::shop::PurchaseTracker;
 use super::state::GameState;
 use super::transcendence::TranscendenceState;
 use super::wisdom::WisdomMeter;
 use crate::orb::types::{EquippedOrb, OrbType};
 use bevy::prelude::*;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
 pub enum SchoolOfThought {
     #[default]
     None,
@@ -272,6 +274,7 @@ pub fn handle_school_choice(
     mut tracker: ResMut<PurchaseTracker>,
     mut moments: ResMut<MomentState>,
     mut achievements: ResMut<AchievementTracker>,
+    mut shadows: ResMut<ShadowState>,
     mut equipped: ResMut<EquippedOrb>,
     mut next_state: ResMut<NextState<GameState>>,
 ) {
@@ -295,6 +298,7 @@ pub fn handle_school_choice(
         *acolytes = AcolyteState::default();
         *tracker = PurchaseTracker::default();
         *moments = MomentState::default();
+        *shadows = ShadowState::default();
         achievements.reset_run_stats();
         equipped.0 = OrbType::Crystal;
         tracker.recalculate(OrbType::Crystal);

@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- Add Shadow Thoughts wisdom multiplier mechanic (#35)
+- Add offline progression system (#34)
 - Add achievements and milestone system (#33)
 - Add Schools of Thought prestige specialization (#32)
 - Add synergy upgrades between generators (#29)

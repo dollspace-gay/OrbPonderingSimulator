@@ -170,6 +170,22 @@ impl SynergyState {
             .sum()
     }
 
+    /// Recalculate all synergy and milestone multipliers from generator state
+    pub fn recalculate(&mut self, generators: &GeneratorState) {
+        self.synergy_mult = [1.0; 8];
+        self.milestone_mult = [1.0; 8];
+        for link in SYNERGY_TABLE {
+            let source_count = generators.count(link.source);
+            if source_count > 0 {
+                let target_idx = link.target as usize;
+                self.synergy_mult[target_idx] += link.bonus_per_unit * source_count as f64;
+            }
+        }
+        for (i, gt) in GeneratorType::ALL.iter().enumerate() {
+            self.milestone_mult[i] = milestone_multiplier(generators.count(*gt));
+        }
+    }
+
     /// Get a human-readable summary of active synergy bonuses for a generator
     pub fn synergy_description(
         &self,

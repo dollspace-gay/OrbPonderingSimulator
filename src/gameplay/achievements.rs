@@ -4,10 +4,11 @@ use super::progression::ArcaneProgress;
 use super::transcendence::TranscendenceState;
 use super::wisdom::TruthGenerated;
 use bevy::prelude::*;
+use serde::{Deserialize, Serialize};
 
 // ========== ACHIEVEMENT DEFINITIONS ==========
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum AchievementId {
     // Truth milestones
     FirstTruth,

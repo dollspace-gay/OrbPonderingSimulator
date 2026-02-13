@@ -1,10 +1,11 @@
 use super::state::GameState;
 use super::wisdom::WisdomMeter;
 use bevy::prelude::*;
+use serde::{Deserialize, Serialize};
 
 // ========== DATA ==========
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum EnlightenmentId {
     /// +10% base wisdom per click permanently
     DeepRoots,
