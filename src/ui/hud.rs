@@ -133,7 +133,7 @@ pub fn setup_hud(mut commands: Commands) {
             ..default()
         }).with_children(|bottom| {
             bottom.spawn((
-                Text::new("[Click] Ponder | [SPACE] Deep Focus | [A] Summon | [F] Pet | [B] Shop | [L] Logbook | [T] Transcend"),
+                Text::new("[Click] Ponder | [SPACE] Deep Focus | [A] Summon | [F] Pet | [B] Shop | [L] Logbook | [T] Transcend | [V] Achievements"),
                 TextFont { font_size: 14.0, ..default() },
                 TextColor(Color::srgba(0.6, 0.6, 0.7, 0.6)),
                 PonderHint,

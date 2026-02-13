@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+pub mod achievements;
 pub mod acolytes;
 pub mod generators;
 pub mod moments;
@@ -26,6 +27,7 @@ impl Plugin for GameplayPlugin {
             .init_resource::<schools::SchoolState>()
             .init_resource::<moments::MomentState>()
             .init_resource::<transcendence::TranscendenceState>()
+            .init_resource::<achievements::AchievementTracker>()
             .add_message::<wisdom::TruthGenerated>()
             .add_systems(
                 Update,
@@ -57,6 +59,9 @@ impl Plugin for GameplayPlugin {
                     progression::award_points,
                     transcendence::accumulate_run_wisdom,
                     schools::track_run_truths,
+                    achievements::track_achievement_stats,
+                    achievements::track_deep_focus_uses,
+                    achievements::check_achievements,
                 )
                     .run_if(in_state(state::GameState::Playing)),
             )
@@ -91,6 +96,23 @@ impl Plugin for GameplayPlugin {
                     transcendence::handle_enlightenment_buy,
                 )
                     .run_if(in_state(state::GameState::TranscendenceOpen)),
+            )
+            // Achievements
+            .add_systems(Update, achievements::toggle_achievements)
+            .add_systems(
+                Update,
+                (
+                    achievements::spawn_notifications,
+                    achievements::update_notifications,
+                ),
+            )
+            .add_systems(
+                OnEnter(state::GameState::AchievementsOpen),
+                achievements::open_achievements,
+            )
+            .add_systems(
+                OnExit(state::GameState::AchievementsOpen),
+                achievements::close_achievements,
             )
             // Pause
             .add_systems(Update, state::toggle_pause)

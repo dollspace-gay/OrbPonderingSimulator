@@ -1,3 +1,4 @@
+use super::achievements::AchievementTracker;
 use super::acolytes::AcolyteState;
 use super::generators::GeneratorState;
 use super::moments::MomentState;
@@ -270,6 +271,7 @@ pub fn handle_school_choice(
     mut acolytes: ResMut<AcolyteState>,
     mut tracker: ResMut<PurchaseTracker>,
     mut moments: ResMut<MomentState>,
+    mut achievements: ResMut<AchievementTracker>,
     mut equipped: ResMut<EquippedOrb>,
     mut next_state: ResMut<NextState<GameState>>,
 ) {
@@ -293,6 +295,7 @@ pub fn handle_school_choice(
         *acolytes = AcolyteState::default();
         *tracker = PurchaseTracker::default();
         *moments = MomentState::default();
+        achievements.reset_run_stats();
         equipped.0 = OrbType::Crystal;
         tracker.recalculate(OrbType::Crystal);
 

@@ -1,3 +1,4 @@
+use super::achievements::AchievementTracker;
 use super::acolytes::AcolyteState;
 use super::moments::MomentState;
 use super::schools::SchoolState;
@@ -34,6 +35,7 @@ pub fn handle_click_ponder(
     moments: Res<MomentState>,
     transcendence: Res<TranscendenceState>,
     school: Res<SchoolState>,
+    achievements: Res<AchievementTracker>,
     interactions: Query<&Interaction>,
 ) {
     if !mouse.just_pressed(MouseButton::Left) {
@@ -51,13 +53,15 @@ pub fn handle_click_ponder(
     let moment_click_mult = moments.click_multiplier();
     let enlightenment_mult = transcendence.click_multiplier();
     let school_click_mult = school.click_multiplier();
+    let achievement_mult = achievements.wisdom_multiplier();
     let gain = 1.0
         * (1.0 + tracker.efficiency_bonus)
         * tracker.wisdom_speed_bonus
         * deep_focus_mult
         * moment_click_mult
         * enlightenment_mult
-        * school_click_mult;
+        * school_click_mult
+        * achievement_mult;
 
     wisdom.current += gain;
     ponder.ponder_intensity = 1.0;
