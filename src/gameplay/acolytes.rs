@@ -1,5 +1,7 @@
 use super::achievements::AchievementTracker;
 use super::challenges::ChallengeState;
+use super::codex::TruthCodex;
+use super::layers::LayerState;
 use super::moments::MomentState;
 use super::progression::ArcaneProgress;
 use super::resources::SecondaryResources;
@@ -7,6 +9,7 @@ use super::schools::SchoolState;
 use super::shop::PurchaseTracker;
 use super::transcendence::TranscendenceState;
 use super::wisdom::WisdomMeter;
+use crate::environment::daynight::DayNightCycle;
 use bevy::prelude::*;
 
 #[derive(Resource, Debug)]
@@ -61,6 +64,9 @@ pub fn passive_wisdom(
     achievements: Res<AchievementTracker>,
     challenges: Res<ChallengeState>,
     resources: Res<SecondaryResources>,
+    codex: Res<TruthCodex>,
+    layers: Res<LayerState>,
+    cycle: Res<DayNightCycle>,
     mut wisdom: ResMut<WisdomMeter>,
     time: Res<Time>,
 ) {
@@ -75,6 +81,8 @@ pub fn passive_wisdom(
         * school.passive_multiplier()
         * achievements.wisdom_multiplier()
         * challenges.passive_multiplier()
-        * resources.focus_mult();
+        * resources.focus_mult()
+        * codex.wisdom_multiplier()
+        * layers.dream_multiplier(&cycle);
     wisdom.current += rate * time.delta_secs();
 }

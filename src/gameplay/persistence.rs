@@ -1,7 +1,9 @@
 use super::achievements::{AchievementId, AchievementTracker};
 use super::acolytes::AcolyteState;
 use super::challenges::{ChallengeId, ChallengeState};
+use super::codex::{TruthCategory, TruthCodex};
 use super::generators::GeneratorState;
+use super::layers::{ContentLayer, LayerState};
 use super::progression::ArcaneProgress;
 use super::resources::SecondaryResources;
 use super::schools::{SchoolOfThought, SchoolState};
@@ -80,6 +82,16 @@ pub struct SaveData {
     pub curiosity: f64,
     #[serde(default)]
     pub focus: f64,
+
+    // Truth Codex (permanent)
+    #[serde(default)]
+    pub discovered_truths: Vec<usize>,
+    #[serde(default)]
+    pub completed_codex_categories: Vec<TruthCategory>,
+
+    // Content Layers (permanent)
+    #[serde(default)]
+    pub unlocked_layers: Vec<ContentLayer>,
 }
 
 impl SaveData {
@@ -96,6 +108,8 @@ impl SaveData {
         shadows: &ShadowState,
         challenges: &ChallengeState,
         resources: &SecondaryResources,
+        codex: &TruthCodex,
+        layers: &LayerState,
     ) -> Self {
         Self {
             version: 1,
@@ -127,6 +141,9 @@ impl SaveData {
             serenity: resources.serenity,
             curiosity: resources.curiosity,
             focus: resources.focus,
+            discovered_truths: codex.discovered.iter().copied().collect(),
+            completed_codex_categories: codex.completed_categories.clone(),
+            unlocked_layers: layers.unlocked.clone(),
         }
     }
 
@@ -145,6 +162,8 @@ impl SaveData {
         shadows: &mut ShadowState,
         challenges: &mut ChallengeState,
         resources: &mut SecondaryResources,
+        codex: &mut TruthCodex,
+        layers: &mut LayerState,
     ) {
         wisdom.current = self.wisdom_current;
         wisdom.max_wisdom = self.wisdom_max;
@@ -186,6 +205,15 @@ impl SaveData {
         resources.serenity = self.serenity;
         resources.curiosity = self.curiosity;
         resources.focus = self.focus;
+
+        // Restore codex (permanent)
+        codex.discovered = self.discovered_truths.iter().copied().collect();
+        codex.completed_categories = self.completed_codex_categories.clone();
+
+        // Restore layers (permanent)
+        if !self.unlocked_layers.is_empty() {
+            layers.unlocked = self.unlocked_layers.clone();
+        }
 
         // Recalculate synergies from restored generator state
         synergies.recalculate(generators);
@@ -364,6 +392,8 @@ pub fn load_game(
     mut shadows: ResMut<ShadowState>,
     mut challenges: ResMut<ChallengeState>,
     mut resources: ResMut<SecondaryResources>,
+    mut codex: ResMut<TruthCodex>,
+    mut layers: ResMut<LayerState>,
     mut offline_report: ResMut<OfflineReport>,
 ) {
     let Some(save) = load_from_disk() else {
@@ -388,6 +418,8 @@ pub fn load_game(
         &mut shadows,
         &mut challenges,
         &mut resources,
+        &mut codex,
+        &mut layers,
     );
 
     // Apply offline gains
@@ -430,6 +462,8 @@ pub fn auto_save(
     shadows: Res<ShadowState>,
     challenges: Res<ChallengeState>,
     resources: Res<SecondaryResources>,
+    codex: Res<TruthCodex>,
+    layers: Res<LayerState>,
 ) {
     timer.0.tick(time.delta());
     if !timer.0.just_finished() {
@@ -449,6 +483,8 @@ pub fn auto_save(
         &shadows,
         &challenges,
         &resources,
+        &codex,
+        &layers,
     );
     save_to_disk(&data);
 }
@@ -468,6 +504,8 @@ pub fn save_on_exit(
     shadows: Res<ShadowState>,
     challenges: Res<ChallengeState>,
     resources: Res<SecondaryResources>,
+    codex: Res<TruthCodex>,
+    layers: Res<LayerState>,
 ) {
     if exit_messages.read().next().is_none() {
         return;
@@ -486,6 +524,8 @@ pub fn save_on_exit(
         &shadows,
         &challenges,
         &resources,
+        &codex,
+        &layers,
     );
     save_to_disk(&data);
 }

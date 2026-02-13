@@ -1,5 +1,7 @@
 use super::achievements::AchievementTracker;
 use super::challenges::ChallengeState;
+use super::codex::TruthCodex;
+use super::layers::LayerState;
 use super::moments::MomentState;
 use super::resources::SecondaryResources;
 use super::schools::SchoolState;
@@ -7,6 +9,7 @@ use super::shop::PurchaseTracker;
 use super::synergies::SynergyState;
 use super::transcendence::TranscendenceState;
 use super::wisdom::WisdomMeter;
+use crate::environment::daynight::DayNightCycle;
 use bevy::prelude::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -160,6 +163,9 @@ pub fn passive_generator_wisdom(
     achievements: Res<AchievementTracker>,
     challenges: Res<ChallengeState>,
     resources: Res<SecondaryResources>,
+    codex: Res<TruthCodex>,
+    layers: Res<LayerState>,
+    cycle: Res<DayNightCycle>,
     mut wisdom: ResMut<WisdomMeter>,
     time: Res<Time>,
 ) {
@@ -175,6 +181,8 @@ pub fn passive_generator_wisdom(
         * school.passive_multiplier() as f64
         * achievements.wisdom_multiplier() as f64
         * challenges.passive_multiplier() as f64
-        * resources.focus_mult_f64();
+        * resources.focus_mult_f64()
+        * codex.wisdom_multiplier() as f64
+        * layers.dream_multiplier(&cycle) as f64;
     wisdom.current += (rate * time.delta_secs() as f64) as f32;
 }

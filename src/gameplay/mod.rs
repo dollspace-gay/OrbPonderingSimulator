@@ -3,7 +3,9 @@ use bevy::prelude::*;
 pub mod achievements;
 pub mod acolytes;
 pub mod challenges;
+pub mod codex;
 pub mod generators;
+pub mod layers;
 pub mod moments;
 pub mod persistence;
 pub mod pondering;
@@ -35,6 +37,9 @@ impl Plugin for GameplayPlugin {
             .init_resource::<shadow_thoughts::ShadowState>()
             .init_resource::<challenges::ChallengeState>()
             .init_resource::<resources::SecondaryResources>()
+            .init_resource::<codex::TruthCodex>()
+            .init_resource::<layers::LayerState>()
+            .init_resource::<layers::DreamTruthTimer>()
             .init_resource::<persistence::AutoSaveTimer>()
             .init_resource::<persistence::OfflineReport>()
             .add_message::<wisdom::TruthGenerated>()
@@ -67,11 +72,21 @@ impl Plugin for GameplayPlugin {
                     shadow_thoughts::siphon_wisdom,
                     shadow_thoughts::handle_dispel,
                     shadow_thoughts::render_shadow_ui,
+                )
+                    .run_if(in_state(state::GameState::Playing)),
+            )
+            .add_systems(
+                Update,
+                (
                     challenges::update_challenges,
                     challenges::track_solitude_progress,
                     challenges::render_challenge_indicator,
                     resources::generate_serenity,
                     resources::update_focus,
+                    codex::track_truth_discovery,
+                    layers::check_layer_unlocks,
+                    layers::apply_astral_bonus,
+                    layers::dream_truth_generation,
                 )
                     .run_if(in_state(state::GameState::Playing)),
             )
@@ -144,6 +159,19 @@ impl Plugin for GameplayPlugin {
                 OnExit(state::GameState::AchievementsOpen),
                 achievements::close_achievements,
             )
+            // Codex
+            .add_systems(Update, codex::toggle_codex)
+            .add_systems(
+                Update,
+                (
+                    codex::spawn_codex_notifications,
+                    codex::update_codex_notifications,
+                    layers::spawn_layer_notifications,
+                    layers::update_layer_notifications,
+                ),
+            )
+            .add_systems(OnEnter(state::GameState::CodexOpen), codex::open_codex)
+            .add_systems(OnExit(state::GameState::CodexOpen), codex::close_codex)
             // Challenges
             .add_systems(Update, challenges::toggle_challenges)
             .add_systems(

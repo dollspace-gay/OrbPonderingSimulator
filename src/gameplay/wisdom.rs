@@ -23,9 +23,10 @@ impl Default for WisdomMeter {
 #[derive(Message)]
 pub struct TruthGenerated {
     pub text: String,
+    pub truth_index: usize,
 }
 
-const DEEP_TRUTHS: &[&str] = &[
+pub const DEEP_TRUTHS: &[&str] = &[
     // Original truths
     "The orb knows what the clock forgets.",
     "Silence has a color, but only on Tuesdays.",
@@ -351,6 +352,7 @@ pub fn check_truth_generation(
         let index = (wisdom.truths_generated as usize - 1) % DEEP_TRUTHS.len();
         truth_messages.write(TruthGenerated {
             text: DEEP_TRUTHS[index].to_string(),
+            truth_index: index,
         });
 
         let scaling = challenges

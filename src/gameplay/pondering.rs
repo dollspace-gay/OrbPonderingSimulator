@@ -1,12 +1,15 @@
 use super::achievements::AchievementTracker;
 use super::acolytes::AcolyteState;
 use super::challenges::ChallengeState;
+use super::codex::TruthCodex;
+use super::layers::LayerState;
 use super::moments::MomentState;
 use super::resources::SecondaryResources;
 use super::schools::SchoolState;
 use super::shop::PurchaseTracker;
 use super::transcendence::TranscendenceState;
 use super::wisdom::WisdomMeter;
+use crate::environment::daynight::DayNightCycle;
 use crate::orb::types::Orb;
 use bevy::prelude::*;
 
@@ -40,6 +43,9 @@ pub fn handle_click_ponder(
     achievements: Res<AchievementTracker>,
     challenges: Res<ChallengeState>,
     mut resources: ResMut<SecondaryResources>,
+    codex: Res<TruthCodex>,
+    layers: Res<LayerState>,
+    cycle: Res<DayNightCycle>,
     interactions: Query<&Interaction>,
 ) {
     if !mouse.just_pressed(MouseButton::Left) {
@@ -68,7 +74,9 @@ pub fn handle_click_ponder(
         * school_click_mult
         * achievement_mult
         * challenge_click_mult
-        * resources.focus_mult();
+        * resources.focus_mult()
+        * codex.wisdom_multiplier()
+        * layers.dream_multiplier(&cycle);
 
     wisdom.current += gain;
     ponder.ponder_intensity = 1.0;

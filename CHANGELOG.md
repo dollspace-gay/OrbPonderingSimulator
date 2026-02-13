@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- Add progressive content layers (Astral, Dream, Void) (#39)
+- Add Truth Codex collection mechanic (#38)
 - Add secondary resources (Serenity, Curiosity, Focus) (#37)
 - Add Meditation Challenges for permanent rewards (#36)
 - Add Shadow Thoughts wisdom multiplier mechanic (#35)

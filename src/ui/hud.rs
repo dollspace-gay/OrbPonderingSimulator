@@ -1,7 +1,8 @@
+use crate::environment::daynight::DayNightCycle;
 use crate::gameplay::{
-    acolytes::AcolyteState, generators::GeneratorState, pondering::PonderState,
-    progression::ArcaneProgress, resources::SecondaryResources, shop::PurchaseTracker,
-    synergies::SynergyState, wisdom::WisdomMeter,
+    acolytes::AcolyteState, generators::GeneratorState, layers::LayerState,
+    pondering::PonderState, progression::ArcaneProgress, resources::SecondaryResources,
+    shop::PurchaseTracker, synergies::SynergyState, wisdom::WisdomMeter,
 };
 use bevy::prelude::*;
 
@@ -37,6 +38,9 @@ pub struct CuriosityText;
 
 #[derive(Component)]
 pub struct FocusText;
+
+#[derive(Component)]
+pub struct LayerIndicatorText;
 
 pub fn setup_hud(mut commands: Commands) {
     // Root
@@ -151,6 +155,13 @@ pub fn setup_hud(mut commands: Commands) {
                     TextColor(Color::srgb(0.7, 0.6, 0.9)),
                     GeneratorText,
                 ));
+
+                right.spawn((
+                    Text::new(""),
+                    TextFont { font_size: 13.0, ..default() },
+                    TextColor(Color::srgb(0.4, 0.6, 1.0)),
+                    LayerIndicatorText,
+                ));
             });
         });
 
@@ -162,7 +173,7 @@ pub fn setup_hud(mut commands: Commands) {
             ..default()
         }).with_children(|bottom| {
             bottom.spawn((
-                Text::new("[Click] Ponder | [SPACE] Deep Focus | [G] Focus | [A] Summon | [D] Dispel | [F] Pet | [B] Shop | [L] Logbook | [T] Transcend | [V] Achievements | [C] Challenges"),
+                Text::new("[Click] Ponder | [SPACE] Deep Focus | [G] Focus | [A] Summon | [D] Dispel | [F] Pet | [B] Shop | [L] Logbook | [T] Transcend | [V] Achievements | [C] Challenges | [X] Codex"),
                 TextFont { font_size: 14.0, ..default() },
                 TextColor(Color::srgba(0.6, 0.6, 0.7, 0.6)),
                 PonderHint,
@@ -309,5 +320,28 @@ pub fn update_deep_focus_display(
         } else {
             Color::srgb(0.4, 0.8, 1.0)
         };
+    }
+}
+
+pub fn update_layer_display(
+    layers: Res<LayerState>,
+    cycle: Res<DayNightCycle>,
+    mut text_query: Query<&mut Text, With<LayerIndicatorText>>,
+    mut color_query: Query<&mut TextColor, With<LayerIndicatorText>>,
+) {
+    let highest = layers.highest_unlocked();
+    let dream_mult = layers.dream_multiplier(&cycle);
+    let has_dream = layers.has(crate::gameplay::layers::ContentLayer::Dream);
+
+    for mut text in &mut text_query {
+        if has_dream && dream_mult > 1.01 {
+            **text = format!("{} (+{:.0}% dream)", highest.name(), (dream_mult - 1.0) * 100.0);
+        } else {
+            **text = highest.name().to_string();
+        }
+    }
+
+    for mut color in &mut color_query {
+        color.0 = highest.color();
     }
 }
