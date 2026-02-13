@@ -26,6 +26,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fix PurchaseTracker default values breaking wisdom gain (#22)
 
 ### Changed
+- Add MIT license (#41)
+- Add CLAUDE.md and README.md (#40)
 - Add audio system - ambient and reactive sounds (Phase 6) (#7)
 - Add UI layer - HUD, truth popups, logbook (Phase 5) (#6)
 - Add familiar creatures with distraction mechanics (Phase 4) (#5)
