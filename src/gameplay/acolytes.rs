@@ -2,6 +2,7 @@ use super::achievements::AchievementTracker;
 use super::challenges::ChallengeState;
 use super::moments::MomentState;
 use super::progression::ArcaneProgress;
+use super::resources::SecondaryResources;
 use super::schools::SchoolState;
 use super::shop::PurchaseTracker;
 use super::transcendence::TranscendenceState;
@@ -59,6 +60,7 @@ pub fn passive_wisdom(
     school: Res<SchoolState>,
     achievements: Res<AchievementTracker>,
     challenges: Res<ChallengeState>,
+    resources: Res<SecondaryResources>,
     mut wisdom: ResMut<WisdomMeter>,
     time: Res<Time>,
 ) {
@@ -72,6 +74,7 @@ pub fn passive_wisdom(
         * transcendence.passive_multiplier()
         * school.passive_multiplier()
         * achievements.wisdom_multiplier()
-        * challenges.passive_multiplier();
+        * challenges.passive_multiplier()
+        * resources.focus_mult();
     wisdom.current += rate * time.delta_secs();
 }

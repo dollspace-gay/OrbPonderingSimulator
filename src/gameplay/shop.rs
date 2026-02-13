@@ -1,5 +1,6 @@
 use super::generators::{GeneratorState, GeneratorType};
 use super::progression::ArcaneProgress;
+use super::resources::SecondaryResources;
 use super::state::GameState;
 use super::synergies::SynergyState;
 use super::transcendence::TranscendenceState;
@@ -282,6 +283,7 @@ pub fn open_shop(
     generators: Res<GeneratorState>,
     synergies: Res<SynergyState>,
     transcendence: Res<TranscendenceState>,
+    resources: Res<SecondaryResources>,
 ) {
     commands.insert_resource(SelectedCategory(ShopCategory::Snacks));
 
@@ -428,6 +430,7 @@ pub fn open_shop(
                                 &generators,
                                 &synergies,
                                 &transcendence,
+                                &resources,
                             );
                         });
 
@@ -481,6 +484,7 @@ pub fn rebuild_item_list(
     generators: Res<GeneratorState>,
     synergies: Res<SynergyState>,
     transcendence: Res<TranscendenceState>,
+    resources: Res<SecondaryResources>,
     list_query: Query<Entity, With<ShopItemList>>,
     tab_query: Query<(&CategoryTab, &Children)>,
     mut text_query: Query<&mut TextColor>,
@@ -525,6 +529,7 @@ pub fn rebuild_item_list(
                     &generators,
                     &synergies,
                     &transcendence,
+                    &resources,
                 );
             });
     }
@@ -681,10 +686,11 @@ fn spawn_items(
     generators: &GeneratorState,
     synergies: &SynergyState,
     transcendence: &TranscendenceState,
+    resources: &SecondaryResources,
 ) {
     // Generator tab has its own rendering
     if category == ShopCategory::Generators {
-        spawn_generator_items(parent, generators, synergies, progress, transcendence);
+        spawn_generator_items(parent, generators, synergies, progress, transcendence, resources);
         return;
     }
 
@@ -943,6 +949,7 @@ fn spawn_generator_items(
     synergies: &SynergyState,
     progress: &ArcaneProgress,
     transcendence: &TranscendenceState,
+    resources: &SecondaryResources,
 ) {
     let mut any_visible = false;
     let discount = transcendence.generator_cost_discount();
@@ -955,7 +962,9 @@ fn spawn_generator_items(
 
         let owned = generators.count(gt);
         let cost = gt.next_cost_discounted(owned, discount);
-        let affordable = progress.focus_points >= cost;
+        let serenity_cost = gt.serenity_cost();
+        let has_serenity = serenity_cost.map_or(true, |s| resources.serenity >= s);
+        let affordable = progress.focus_points >= cost && has_serenity;
         let production = gt.base_production();
         let syn_mult = synergies.total_mult(gt);
 
@@ -1031,6 +1040,23 @@ fn spawn_generator_items(
                         TextColor(Color::srgba(0.6, 0.55, 0.7, 0.7)),
                     ));
 
+                    // Serenity cost line
+                    if let Some(s_cost) = serenity_cost {
+                        let color = if has_serenity {
+                            Color::srgba(0.4, 0.7, 0.9, 0.8)
+                        } else {
+                            Color::srgba(0.9, 0.4, 0.3, 0.8)
+                        };
+                        info.spawn((
+                            Text::new(format!("Requires {:.0} Serenity", s_cost)),
+                            TextFont {
+                                font_size: 11.0,
+                                ..default()
+                            },
+                            TextColor(color),
+                        ));
+                    }
+
                     // Synergy details line
                     if let Some(syn_desc) = synergies.synergy_description(gt, generators) {
                         info.spawn((
@@ -1098,6 +1124,7 @@ pub fn handle_buy_generator(
     interactions: Query<(&Interaction, &BuyGeneratorButton), Changed<Interaction>>,
     mut generators: ResMut<GeneratorState>,
     mut progress: ResMut<ArcaneProgress>,
+    mut resources: ResMut<SecondaryResources>,
     transcendence: Res<TranscendenceState>,
 ) {
     let discount = transcendence.generator_cost_discount();
@@ -1111,6 +1138,14 @@ pub fn handle_buy_generator(
 
         if progress.focus_points < cost {
             continue;
+        }
+
+        // Check serenity requirement for high-tier generators
+        if let Some(serenity_cost) = button.0.serenity_cost() {
+            if resources.serenity < serenity_cost {
+                continue;
+            }
+            resources.serenity -= serenity_cost;
         }
 
         progress.focus_points -= cost;

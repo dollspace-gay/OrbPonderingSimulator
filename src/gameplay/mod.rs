@@ -8,6 +8,7 @@ pub mod moments;
 pub mod persistence;
 pub mod pondering;
 pub mod progression;
+pub mod resources;
 pub mod schools;
 pub mod shadow_thoughts;
 pub mod shop;
@@ -33,6 +34,7 @@ impl Plugin for GameplayPlugin {
             .init_resource::<achievements::AchievementTracker>()
             .init_resource::<shadow_thoughts::ShadowState>()
             .init_resource::<challenges::ChallengeState>()
+            .init_resource::<resources::SecondaryResources>()
             .init_resource::<persistence::AutoSaveTimer>()
             .init_resource::<persistence::OfflineReport>()
             .add_message::<wisdom::TruthGenerated>()
@@ -68,6 +70,8 @@ impl Plugin for GameplayPlugin {
                     challenges::update_challenges,
                     challenges::track_solitude_progress,
                     challenges::render_challenge_indicator,
+                    resources::generate_serenity,
+                    resources::update_focus,
                 )
                     .run_if(in_state(state::GameState::Playing)),
             )

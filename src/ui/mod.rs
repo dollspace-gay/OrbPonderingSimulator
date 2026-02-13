@@ -19,6 +19,7 @@ impl Plugin for UiPlugin {
                     hud::update_acolyte_display,
                     hud::update_generator_display,
                     hud::update_deep_focus_display,
+                    hud::update_secondary_display,
                     truth_display::show_truth_popup,
                     truth_display::animate_truth_popup,
                     logbook::record_truths,

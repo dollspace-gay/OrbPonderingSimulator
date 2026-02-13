@@ -1,6 +1,7 @@
 use super::achievements::AchievementTracker;
 use super::challenges::ChallengeState;
 use super::moments::MomentState;
+use super::resources::SecondaryResources;
 use super::schools::SchoolState;
 use super::shop::PurchaseTracker;
 use super::synergies::SynergyState;
@@ -84,6 +85,17 @@ impl GeneratorType {
         }
     }
 
+    /// Serenity cost required to purchase this generator tier (None = no serenity needed)
+    pub fn serenity_cost(&self) -> Option<f64> {
+        match self {
+            Self::AstralMirror => Some(50.0),
+            Self::DreamLoom => Some(200.0),
+            Self::VoidGate => Some(800.0),
+            Self::CosmicEye => Some(3000.0),
+            _ => None,
+        }
+    }
+
     pub fn cost_growth(&self) -> f64 {
         1.15
     }
@@ -147,6 +159,7 @@ pub fn passive_generator_wisdom(
     school: Res<SchoolState>,
     achievements: Res<AchievementTracker>,
     challenges: Res<ChallengeState>,
+    resources: Res<SecondaryResources>,
     mut wisdom: ResMut<WisdomMeter>,
     time: Res<Time>,
 ) {
@@ -161,6 +174,7 @@ pub fn passive_generator_wisdom(
         * transcendence.passive_multiplier() as f64
         * school.passive_multiplier() as f64
         * achievements.wisdom_multiplier() as f64
-        * challenges.passive_multiplier() as f64;
+        * challenges.passive_multiplier() as f64
+        * resources.focus_mult_f64();
     wisdom.current += (rate * time.delta_secs() as f64) as f32;
 }

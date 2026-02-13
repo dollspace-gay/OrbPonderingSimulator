@@ -3,6 +3,7 @@ use super::acolytes::AcolyteState;
 use super::challenges::{ChallengeId, ChallengeState};
 use super::generators::GeneratorState;
 use super::progression::ArcaneProgress;
+use super::resources::SecondaryResources;
 use super::schools::{SchoolOfThought, SchoolState};
 use super::shadow_thoughts::ShadowState;
 use super::shop::{PurchaseTracker, ShopItemId};
@@ -71,6 +72,14 @@ pub struct SaveData {
     // Challenges (permanent)
     #[serde(default)]
     pub completed_challenges: Vec<ChallengeId>,
+
+    // Secondary resources (per-run)
+    #[serde(default)]
+    pub serenity: f64,
+    #[serde(default)]
+    pub curiosity: f64,
+    #[serde(default)]
+    pub focus: f64,
 }
 
 impl SaveData {
@@ -86,6 +95,7 @@ impl SaveData {
         achievements: &AchievementTracker,
         shadows: &ShadowState,
         challenges: &ChallengeState,
+        resources: &SecondaryResources,
     ) -> Self {
         Self {
             version: 1,
@@ -114,6 +124,9 @@ impl SaveData {
             shadow_count: shadows.count,
             shadow_stored_wisdom: shadows.stored_wisdom,
             completed_challenges: challenges.completed.clone(),
+            serenity: resources.serenity,
+            curiosity: resources.curiosity,
+            focus: resources.focus,
         }
     }
 
@@ -131,6 +144,7 @@ impl SaveData {
         synergies: &mut SynergyState,
         shadows: &mut ShadowState,
         challenges: &mut ChallengeState,
+        resources: &mut SecondaryResources,
     ) {
         wisdom.current = self.wisdom_current;
         wisdom.max_wisdom = self.wisdom_max;
@@ -168,6 +182,10 @@ impl SaveData {
 
         challenges.completed = self.completed_challenges.clone();
         challenges.active = None;
+
+        resources.serenity = self.serenity;
+        resources.curiosity = self.curiosity;
+        resources.focus = self.focus;
 
         // Recalculate synergies from restored generator state
         synergies.recalculate(generators);
@@ -345,6 +363,7 @@ pub fn load_game(
     mut synergies: ResMut<SynergyState>,
     mut shadows: ResMut<ShadowState>,
     mut challenges: ResMut<ChallengeState>,
+    mut resources: ResMut<SecondaryResources>,
     mut offline_report: ResMut<OfflineReport>,
 ) {
     let Some(save) = load_from_disk() else {
@@ -368,6 +387,7 @@ pub fn load_game(
         &mut synergies,
         &mut shadows,
         &mut challenges,
+        &mut resources,
     );
 
     // Apply offline gains
@@ -409,6 +429,7 @@ pub fn auto_save(
     achievements: Res<AchievementTracker>,
     shadows: Res<ShadowState>,
     challenges: Res<ChallengeState>,
+    resources: Res<SecondaryResources>,
 ) {
     timer.0.tick(time.delta());
     if !timer.0.just_finished() {
@@ -427,6 +448,7 @@ pub fn auto_save(
         &achievements,
         &shadows,
         &challenges,
+        &resources,
     );
     save_to_disk(&data);
 }
@@ -445,6 +467,7 @@ pub fn save_on_exit(
     achievements: Res<AchievementTracker>,
     shadows: Res<ShadowState>,
     challenges: Res<ChallengeState>,
+    resources: Res<SecondaryResources>,
 ) {
     if exit_messages.read().next().is_none() {
         return;
@@ -462,6 +485,7 @@ pub fn save_on_exit(
         &achievements,
         &shadows,
         &challenges,
+        &resources,
     );
     save_to_disk(&data);
 }

@@ -2,6 +2,7 @@ use super::achievements::AchievementTracker;
 use super::acolytes::AcolyteState;
 use super::challenges::ChallengeState;
 use super::moments::MomentState;
+use super::resources::SecondaryResources;
 use super::schools::SchoolState;
 use super::shop::PurchaseTracker;
 use super::transcendence::TranscendenceState;
@@ -38,6 +39,7 @@ pub fn handle_click_ponder(
     school: Res<SchoolState>,
     achievements: Res<AchievementTracker>,
     challenges: Res<ChallengeState>,
+    mut resources: ResMut<SecondaryResources>,
     interactions: Query<&Interaction>,
 ) {
     if !mouse.just_pressed(MouseButton::Left) {
@@ -65,10 +67,12 @@ pub fn handle_click_ponder(
         * enlightenment_mult
         * school_click_mult
         * achievement_mult
-        * challenge_click_mult;
+        * challenge_click_mult
+        * resources.focus_mult();
 
     wisdom.current += gain;
     ponder.ponder_intensity = 1.0;
+    resources.curiosity += 1.0;
 }
 
 pub fn handle_deep_focus(keys: Res<ButtonInput<KeyCode>>, mut ponder: ResMut<PonderState>) {

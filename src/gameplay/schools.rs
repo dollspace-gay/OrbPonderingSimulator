@@ -276,6 +276,7 @@ pub fn handle_school_choice(
     mut achievements: ResMut<AchievementTracker>,
     mut shadows: ResMut<ShadowState>,
     mut challenges: ResMut<super::challenges::ChallengeState>,
+    mut resources: ResMut<super::resources::SecondaryResources>,
     mut equipped: ResMut<EquippedOrb>,
     mut next_state: ResMut<NextState<GameState>>,
 ) {
@@ -300,6 +301,7 @@ pub fn handle_school_choice(
         *tracker = PurchaseTracker::default();
         *moments = MomentState::default();
         *shadows = ShadowState::default();
+        *resources = super::resources::SecondaryResources::default();
         challenges.active = None;
         achievements.reset_run_stats();
         equipped.0 = OrbType::Crystal;

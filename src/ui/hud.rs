@@ -1,7 +1,7 @@
 use crate::gameplay::{
     acolytes::AcolyteState, generators::GeneratorState, pondering::PonderState,
-    progression::ArcaneProgress, shop::PurchaseTracker, synergies::SynergyState,
-    wisdom::WisdomMeter,
+    progression::ArcaneProgress, resources::SecondaryResources, shop::PurchaseTracker,
+    synergies::SynergyState, wisdom::WisdomMeter,
 };
 use bevy::prelude::*;
 
@@ -28,6 +28,15 @@ pub struct GeneratorText;
 
 #[derive(Component)]
 pub struct DeepFocusText;
+
+#[derive(Component)]
+pub struct SerenityText;
+
+#[derive(Component)]
+pub struct CuriosityText;
+
+#[derive(Component)]
+pub struct FocusText;
 
 pub fn setup_hud(mut commands: Commands) {
     // Root
@@ -86,6 +95,26 @@ pub fn setup_hud(mut commands: Commands) {
                     TextColor(Color::srgb(0.4, 0.8, 1.0)),
                     DeepFocusText,
                 ));
+
+                // Secondary resources
+                left.spawn((
+                    Text::new("Serenity: 0.0"),
+                    TextFont { font_size: 13.0, ..default() },
+                    TextColor(Color::srgb(0.4, 0.7, 0.9)),
+                    SerenityText,
+                ));
+                left.spawn((
+                    Text::new("Curiosity: 0.0"),
+                    TextFont { font_size: 13.0, ..default() },
+                    TextColor(Color::srgb(0.9, 0.7, 0.3)),
+                    CuriosityText,
+                ));
+                left.spawn((
+                    Text::new("Focus: 100/100"),
+                    TextFont { font_size: 13.0, ..default() },
+                    TextColor(Color::srgb(0.3, 0.9, 0.5)),
+                    FocusText,
+                ));
             });
 
             // Right: AFP + Acolytes
@@ -133,7 +162,7 @@ pub fn setup_hud(mut commands: Commands) {
             ..default()
         }).with_children(|bottom| {
             bottom.spawn((
-                Text::new("[Click] Ponder | [SPACE] Deep Focus | [A] Summon | [D] Dispel | [F] Pet | [B] Shop | [L] Logbook | [T] Transcend | [V] Achievements | [C] Challenges"),
+                Text::new("[Click] Ponder | [SPACE] Deep Focus | [G] Focus | [A] Summon | [D] Dispel | [F] Pet | [B] Shop | [L] Logbook | [T] Transcend | [V] Achievements | [C] Challenges"),
                 TextFont { font_size: 14.0, ..default() },
                 TextColor(Color::srgba(0.6, 0.6, 0.7, 0.6)),
                 PonderHint,
@@ -227,6 +256,33 @@ pub fn update_acolyte_display(
         } else {
             Color::srgb(0.5, 0.4, 0.4)
         };
+    }
+}
+
+pub fn update_secondary_display(
+    resources: Res<SecondaryResources>,
+    mut serenity_text: Query<(&mut Text, &mut TextColor), (With<SerenityText>, Without<CuriosityText>, Without<FocusText>)>,
+    mut curiosity_text: Query<(&mut Text, &mut TextColor), (With<CuriosityText>, Without<SerenityText>, Without<FocusText>)>,
+    mut focus_text: Query<(&mut Text, &mut TextColor), (With<FocusText>, Without<SerenityText>, Without<CuriosityText>)>,
+) {
+    for (mut text, _) in &mut serenity_text {
+        **text = format!("Serenity: {:.1}", resources.serenity);
+    }
+    for (mut text, _) in &mut curiosity_text {
+        **text = format!("Curiosity: {:.0}", resources.curiosity);
+    }
+    for (mut text, mut color) in &mut focus_text {
+        if resources.focus_active {
+            **text = format!("Focus: ACTIVE ({:.0}/{:.0})", resources.focus, resources.focus_max);
+            color.0 = Color::srgb(0.3, 1.0, 0.5);
+        } else {
+            **text = format!("Focus: {:.0}/{:.0}", resources.focus, resources.focus_max);
+            color.0 = if resources.focus >= 10.0 {
+                Color::srgb(0.3, 0.9, 0.5)
+            } else {
+                Color::srgb(0.5, 0.5, 0.5)
+            };
+        }
     }
 }
 

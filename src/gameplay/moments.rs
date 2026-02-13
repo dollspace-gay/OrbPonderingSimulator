@@ -1,5 +1,6 @@
 use super::generators::GeneratorState;
 use super::progression::ArcaneProgress;
+use super::resources::SecondaryResources;
 use super::schools::SchoolState;
 use super::shop::PurchaseTracker;
 use super::transcendence::TranscendenceState;
@@ -117,12 +118,15 @@ impl MomentState {
 /// Ticks timers and spawns new moments
 pub fn update_moments(
     mut moments: ResMut<MomentState>,
+    mut resources: ResMut<SecondaryResources>,
     time: Res<Time>,
     transcendence: Res<TranscendenceState>,
     school: Res<SchoolState>,
 ) {
-    let freq_mult =
-        transcendence.clarity_frequency_multiplier() * school.moment_frequency_multiplier();
+    let curiosity_freq = 1.0 + (resources.curiosity as f32 * 0.02);
+    let freq_mult = transcendence.clarity_frequency_multiplier()
+        * school.moment_frequency_multiplier()
+        * curiosity_freq;
 
     // Tick spawn timer
     if moments.pending.is_none() {
@@ -133,6 +137,8 @@ pub fn update_moments(
                 effect,
                 lifetime: Timer::from_seconds(30.0, TimerMode::Once),
             });
+            // Consume curiosity when a moment spawns
+            resources.curiosity = (resources.curiosity - 10.0).max(0.0);
         }
     }
 
